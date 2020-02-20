@@ -1,4 +1,4 @@
-## Welcome to GitHub Pages
+## 에디 홈에 오신걸 환영할까?
 
 You can use the [editor on GitHub](https://github.com/csdylee/csdylee.github.io/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
 
