@@ -284,9 +284,22 @@
     ];
 
     let currentImageIndex = 0;
+    let shuffledImageFiles = [];
+
+    // 이미지 배열을 섞는 함수 (Fisher-Yates 알고리즘)
+    function shuffleArray(array) {
+      var shuffled = array.slice(); // 배열 복사
+      for (var i = shuffled.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = shuffled[i];
+        shuffled[i] = shuffled[j];
+        shuffled[j] = temp;
+      }
+      return shuffled;
+    }
 
     function changeBackgroundImage() {
-      const imageFile = imageFiles[currentImageIndex];
+      const imageFile = shuffledImageFiles[currentImageIndex];
       const imagePath = `images/${imageFile}`;
       
       document.body.style.backgroundImage = `linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.3) 100%), url('${imagePath}')`;
@@ -297,7 +310,7 @@
       console.log(`배경 이미지 변경: ${imageFile}`);
       
       // 다음 이미지 인덱스로 이동
-      currentImageIndex = (currentImageIndex + 1) % imageFiles.length;
+      currentImageIndex = (currentImageIndex + 1) % shuffledImageFiles.length;
     }
 
     // 매시각 정각에 배경 이미지 변경
@@ -313,6 +326,10 @@
         scheduleNextHourChange(); // 다음 정각 예약
       }, timeUntilNextHour);
     }
+
+    // 페이지 로드 시 이미지 배열을 섞기
+    shuffledImageFiles = shuffleArray(imageFiles);
+    console.log('섞인 이미지 순서:', shuffledImageFiles);
 
     // 초기 배경 이미지 설정
     changeBackgroundImage();
