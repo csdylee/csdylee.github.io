@@ -229,7 +229,7 @@
       try {
 
         const response = await fetch(
-          `http://api.openweathermap.org/data/2.5/weather?lat=37.6569856&lon=127.287296&id&appid=${WEATHER_API_KEY}&units=metric&lang=kr`
+          `https://api.openweathermap.org/data/2.5/weather?lat=37.6569856&lon=127.287296&id&appid=${WEATHER_API_KEY}&units=metric&lang=kr`
         );
 
         if (!response.ok) {
