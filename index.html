@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모던 시계</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000000;
+      color: #fff;
+      font-family: 'Segoe UI', 'Pretendard', 'Apple SD Gothic Neo', Arial, sans-serif;
+      overflow: hidden;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+    }
+    #clock-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+      user-select: none;
+      cursor: pointer;
+    }
+    #date {
+      font-size: clamp(2rem, 6vw, 5rem);
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      margin-bottom: 2vh;
+      opacity: 0.85;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    #time {
+      font-size: clamp(4rem, 18vw, 16rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    #weather {
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      margin-top: 3vh;
+      opacity: 0.9;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .weather-icon {
+      width: clamp(3rem, 6vw, 4.5rem);
+      height: clamp(3rem, 6vw, 4.5rem);
+    }
+    @media (max-width: 600px) {
+      #date {
+        font-size: clamp(1.2rem, 8vw, 2.5rem);
+      }
+      #time {
+        font-size: clamp(2.5rem, 20vw, 6rem);
+      }
+      #weather {
+        font-size: clamp(1.2rem, 5vw, 2rem);
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-top: 2vh;
+      }
+      .weather-icon {
+        width: clamp(2.5rem, 8vw, 3.5rem);
+        height: clamp(2.5rem, 8vw, 3.5rem);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="clock-container">
+    <div id="date"></div>
+    <div id="time"></div>
+    <div id="weather"></div>
+  </div>
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const dateEl = document.getElementById('date');
+      const timeEl = document.getElementById('time');
+      const dateStr = now.toLocaleDateString('ko-KR', {
+        year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+      });
+      const timeStr = now.toLocaleTimeString('ko-KR', {
+        hour: '2-digit', minute: '2-digit', hour12: false
+      });
+      dateEl.textContent = dateStr;
+      timeEl.textContent = timeStr;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 더블 클릭으로 전체화면 토글
+    document.getElementById('clock-container').addEventListener('dblclick', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // 클릭으로 다음 이미지로 변경
+    document.getElementById('clock-container').addEventListener('click', (e) => {
+      // 더블 클릭 이벤트와 충돌 방지
+      if (e.detail === 1) {
+        setTimeout(() => {
+          if (e.detail === 1) {
+            changeBackgroundImage();
+          }
+        }, 200);
+      }
+    });
+
+    // 폰트 크기 자동 조정 (반응형)
+    function resizeFont() {
+      // clamp 사용으로 CSS에서 이미 반응형 처리됨
+      // 필요시 추가 조정 가능
+    }
+    window.addEventListener('resize', resizeFont);
+    resizeFont();
+
+    // 로컬 이미지 배경 변경 기능
+    const imageFiles = [
+      '0aeb0a18e5164f02ab8.jpg',
+      '1341d5f0a7591.jpg',
+      '14780ee505d728.jpg',
+      '14786ca31eff24.jpg',
+      '14786fe712f66a.jpg',
+      '1478774f5546f2.jpg',
+      '14787ac8772fb1.jpg',
+      '152eb29ec7d803.jpg',
+      '152f175644215c.jpg',
+      '152f1785ae2cfe.jpg',
+      '153f629cea75d0.jpg',
+      '16892014d69921.jpg',
+      '1a0961b0641166.png',
+      '21a6f0b3b9136f.jpg',
+      '21a6f3ad82d011.jpg',
+      '21a6f62d2391dd.jpg',
+      '21aab11d0aed00.jpg',
+      '225af8c0fefb4c.jpg',
+      '2421e7b87441f7.jpeg',
+      '285e8fcebfd55a.jpeg',
+      '2a27413b0b338b.jpeg',
+      '2a4bcf55b49235.jpeg',
+      '2a4bd0e640e96d.jpeg',
+      '2a4c3cfe93f7b8.jpeg',
+      '2a4c3dd2e42fe3.jpeg',
+      '2fdf43751f9fa4.jpg',
+      '2fdf46d7df742a.jpg',
+      '2fdf517cbabdf7.jpg',
+      '2fdfaec0383dd5.jpg',
+      '2fdfb23dbe5763.jpg',
+      '3b8c8172b7aa4571ad6.jpg',
+      '4018aa41953336.jpg',
+      '533313b594c66e.jpeg',
+      '53331aaf050096.jpeg',
+      '53331dc97f41ad.jpeg',
+      '533324d381b8f8.jpeg',
+      '5336db56a46fb2.jpeg',
+      '5336ded4cd4766.jpeg',
+      '5336e54699fdce.jpeg',
+      '534a7ca30e49452fad0.png',
+      '6012237169c38a.png',
+      '7d4d3025de8973.jpg',
+      '868d684abf66a.jpg',
+      '868e405f015de.jpg',
+      'e6c6226acc93a.jpeg'
+    ];
+
+    let currentImageIndex = 0;
+
+    function changeBackgroundImage() {
+      const imageFile = imageFiles[currentImageIndex];
+      const imagePath = `images/${imageFile}`;
+      
+      document.body.style.backgroundImage = `linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.3) 100%), url('${imagePath}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+      
+      console.log(`배경 이미지 변경: ${imageFile}`);
+      
+      // 다음 이미지 인덱스로 이동
+      currentImageIndex = (currentImageIndex + 1) % imageFiles.length;
+    }
+
+    // 매시각 정각에 배경 이미지 변경
+    function scheduleNextHourChange() {
+      const now = new Date();
+      const nextHour = new Date(now);
+      nextHour.setHours(now.getHours() + 1, 0, 0, 0); // 다음 정각
+      
+      const timeUntilNextHour = nextHour.getTime() - now.getTime();
+      
+      setTimeout(() => {
+        changeBackgroundImage();
+        scheduleNextHourChange(); // 다음 정각 예약
+      }, timeUntilNextHour);
+    }
+
+    // 초기 배경 이미지 설정
+    changeBackgroundImage();
+
+    // 매시각 정각 변경 스케줄링 시작
+    scheduleNextHourChange();
+
+    // 날씨 정보 기능 (OpenWeatherMap API 사용)
+    const WEATHER_API_KEY = 'dd1ebbf6e977551f04620b5b88a33e8d'; // OpenWeatherMap API 키를 여기에 입력하세요
+    const CITY_NAME = 'Namyangju'; // 남양주시
+    const COUNTRY_CODE = 'KR'; // 한국
+
+    async function getWeather() {
+      try {
+
+        const response = await fetch(
+          `http://api.openweathermap.org/data/2.5/weather?lat=37.6569856&lon=127.287296&id&appid=${WEATHER_API_KEY}&units=metric&lang=kr`
+        );
+
+        if (!response.ok) {
+          throw new Error('날씨 API 요청 실패');
+        }
+
+        const data = await response.json();
+        
+        const temp = Math.round(data.main.temp);
+        const humidity = data.main.humidity;
+        const description = data.weather[0].description;
+        const iconCode = data.weather[0].icon;
+        
+        // 날씨 아이콘 URL
+        const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+        
+        // 날씨 정보 HTML 생성
+        const weatherHTML = `
+          <img src="${iconUrl}" alt="${description}" class="weather-icon">
+          <span>${temp}°C</span>
+          <span>${description}</span>
+          <span>습도: ${humidity}%</span>
+        `;
+        
+        document.getElementById('weather').innerHTML = weatherHTML;
+        
+      } catch (error) {
+        console.log('날씨 정보 가져오기 실패:', error);
+        document.getElementById('weather').innerHTML = `
+          <span>🌤️ 남양주시</span>
+          <span>날씨 정보를 불러올 수 없습니다</span>
+        `;
+      }
+    }
+
+    // 초기 날씨 정보 로드
+    getWeather();
+
+    // 10분마다 날씨 정보 업데이트 (600000ms = 10분)
+    setInterval(() => {
+      getWeather();
+    }, 600000);
+  </script>
+</body>
+</html>
