@@ -34,7 +34,7 @@
       cursor: pointer;
     }
     #date {
-      font-size: clamp(2rem, 6vw, 5rem);
+      font-size: 3rem;
       font-weight: 400;
       letter-spacing: 0.1em;
       margin-bottom: 2vh;
@@ -42,13 +42,13 @@
       text-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
     #time {
-      font-size: clamp(4rem, 18vw, 16rem);
+      font-size: 8rem;
       font-weight: 700;
       letter-spacing: 0.05em;
       text-shadow: 0 4px 24px rgba(0,0,0,0.3);
     }
     #weather {
-      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      font-size: 2rem;
       font-weight: 500;
       letter-spacing: 0.05em;
       margin-top: 3vh;
@@ -56,28 +56,45 @@
       text-shadow: 0 2px 8px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
-      gap: 1.5rem;
     }
     .weather-icon {
-      width: clamp(3rem, 6vw, 4.5rem);
-      height: clamp(3rem, 6vw, 4.5rem);
+      width: 4rem;
+      height: 4rem;
+      margin-right: 1.5rem;
+    }
+    .weather-icon:last-child {
+      margin-right: 0;
+    }
+    .weather-item {
+      margin-right: 1.5rem;
+    }
+    .weather-item:last-child {
+      margin-right: 0;
     }
     @media (max-width: 600px) {
       #date {
-        font-size: clamp(1.2rem, 8vw, 2.5rem);
+        font-size: 2rem;
       }
       #time {
-        font-size: clamp(2.5rem, 20vw, 6rem);
+        font-size: 4rem;
       }
       #weather {
-        font-size: clamp(1.2rem, 5vw, 2rem);
+        font-size: 1.5rem;
         flex-direction: column;
-        gap: 0.8rem;
         margin-top: 2vh;
       }
       .weather-icon {
-        width: clamp(2.5rem, 8vw, 3.5rem);
-        height: clamp(2.5rem, 8vw, 3.5rem);
+        width: 3rem;
+        height: 3rem;
+        margin-right: 0;
+        margin-bottom: 0.8rem;
+      }
+      .weather-item {
+        margin-right: 0;
+        margin-bottom: 0.8rem;
+      }
+      .weather-item:last-child {
+        margin-bottom: 0;
       }
     }
     
@@ -441,54 +458,67 @@
       return weatherMap[description] || description;
     }
 
-    async function getWeather() {
-      try {
-
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=37.6569856&lon=127.287296&id&appid=${WEATHER_API_KEY}&units=metric&lang=kr`
-        );
-
-        if (!response.ok) {
-          throw new Error('날씨 API 요청 실패');
+    function getWeather() {
+      // 구형 브라우저 호환성을 위한 XMLHttpRequest 사용
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://api.openweathermap.org/data/2.5/weather?lat=37.6569856&lon=127.287296&appid=' + WEATHER_API_KEY + '&units=metric&lang=kr', true);
+      
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            try {
+              var data = JSON.parse(xhr.responseText);
+              
+              var temp = Math.round(data.main.temp);
+              var humidity = data.main.humidity;
+              var originalDescription = data.weather[0].description;
+              var weatherId = data.weather[0].id;
+              var iconCode = data.weather[0].icon;
+              
+              // API 응답 확인용 로그
+              console.log('Weather API Response:', data);
+              console.log('Weather ID:', weatherId);
+              console.log('Original description:', originalDescription);
+              
+              // 자연스러운 한국어로 변환
+              var naturalDescription = getNaturalKoreanWeather(originalDescription, weatherId);
+              console.log('Natural Korean description:', naturalDescription);
+              
+              // 날씨 아이콘 URL (구형 브라우저 호환성을 위해 @2x 제거)
+              var iconUrl = 'https://openweathermap.org/img/wn/' + iconCode + '.png';
+              
+              // 날씨 정보 HTML 생성 (구형 브라우저 호환성을 위해 span으로 감싸기)
+              var weatherHTML = 
+                '<img src="' + iconUrl + '" alt="' + naturalDescription + '" class="weather-icon">' +
+                '<span class="weather-item">' + temp + '°C</span>' +
+                '<span class="weather-item">' + naturalDescription + '</span>' +
+                '<span class="weather-item">습도: ' + humidity + '%</span>';
+              
+              document.getElementById('weather').innerHTML = weatherHTML;
+              
+            } catch (error) {
+              console.log('날씨 데이터 파싱 실패:', error);
+              document.getElementById('weather').innerHTML = 
+                '<span class="weather-item">🌤️ 남양주시</span>' +
+                '<span class="weather-item">날씨 정보를 불러올 수 없습니다</span>';
+            }
+          } else {
+            console.log('날씨 API 요청 실패:', xhr.status);
+            document.getElementById('weather').innerHTML = 
+              '<span class="weather-item">🌤️ 남양주시</span>' +
+              '<span class="weather-item">날씨 정보를 불러올 수 없습니다</span>';
+          }
         }
-
-        const data = await response.json();
-        
-        const temp = Math.round(data.main.temp);
-        const humidity = data.main.humidity;
-        const originalDescription = data.weather[0].description;
-        const weatherId = data.weather[0].id;
-        const iconCode = data.weather[0].icon;
-        
-        // API 응답 확인용 로그
-        console.log('Weather API Response:', data);
-        console.log('Weather ID:', weatherId);
-        console.log('Original description:', originalDescription);
-        
-        // 자연스러운 한국어로 변환
-        const naturalDescription = getNaturalKoreanWeather(originalDescription, weatherId);
-        console.log('Natural Korean description:', naturalDescription);
-        
-        // 날씨 아이콘 URL
-        const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
-        
-        // 날씨 정보 HTML 생성
-        const weatherHTML = `
-          <img src="${iconUrl}" alt="${naturalDescription}" class="weather-icon">
-          <span>${temp}°C</span>
-          <span>${naturalDescription}</span>
-          <span>습도: ${humidity}%</span>
-        `;
-        
-        document.getElementById('weather').innerHTML = weatherHTML;
-        
-      } catch (error) {
-        console.log('날씨 정보 가져오기 실패:', error);
-        document.getElementById('weather').innerHTML = `
-          <span>🌤️ 남양주시</span>
-          <span>날씨 정보를 불러올 수 없습니다</span>
-        `;
-      }
+      };
+      
+      xhr.onerror = function() {
+        console.log('날씨 정보 가져오기 실패');
+        document.getElementById('weather').innerHTML = 
+          '<span class="weather-item">🌤️ 남양주시</span>' +
+          '<span class="weather-item">날씨 정보를 불러올 수 없습니다</span>';
+      };
+      
+      xhr.send();
     }
 
     // 초기 날씨 정보 로드
