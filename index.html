@@ -80,6 +80,66 @@
         height: clamp(2.5rem, 8vw, 3.5rem);
       }
     }
+    
+    /* 태블릿 환경 최적화 (갤럭시탭 등) */
+    @media (min-width: 601px) and (max-width: 1024px) {
+      #date {
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        margin-bottom: 3vh;
+      }
+      #time {
+        font-size: clamp(6rem, 22vw, 12rem);
+      }
+      #weather {
+        font-size: clamp(2rem, 5vw, 3rem);
+        margin-top: 4vh;
+        gap: 2rem;
+      }
+      .weather-icon {
+        width: clamp(4rem, 8vw, 5rem);
+        height: clamp(4rem, 8vw, 5rem);
+      }
+    }
+    
+    /* 큰 태블릿 환경 (갤럭시탭 S9 등) */
+    @media (min-width: 1025px) and (max-width: 1366px) {
+      #date {
+        font-size: clamp(3rem, 6vw, 4.5rem);
+        margin-bottom: 4vh;
+      }
+      #time {
+        font-size: clamp(8rem, 20vw, 14rem);
+      }
+      #weather {
+        font-size: clamp(2.5rem, 4vw, 3.5rem);
+        margin-top: 5vh;
+        gap: 2.5rem;
+      }
+      .weather-icon {
+        width: clamp(5rem, 6vw, 6rem);
+        height: clamp(5rem, 6vw, 6rem);
+      }
+    }
+    
+    /* PC 환경 최적화 (1367px 이상) */
+    @media (min-width: 1367px) {
+      #date {
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        margin-bottom: 2vh;
+      }
+      #time {
+        font-size: clamp(4rem, 12vw, 10rem);
+      }
+      #weather {
+        font-size: clamp(1.5rem, 3vw, 2.5rem);
+        margin-top: 3vh;
+        gap: 1.5rem;
+      }
+      .weather-icon {
+        width: clamp(3rem, 4vw, 4rem);
+        height: clamp(3rem, 4vw, 4rem);
+      }
+    }
   </style>
 </head>
 <body>
@@ -105,15 +165,6 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 더블 클릭으로 전체화면 토글
-    document.getElementById('clock-container').addEventListener('dblclick', () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-      } else {
-        document.exitFullscreen();
-      }
-    });
-
     // 클릭으로 다음 이미지로 변경
     document.getElementById('clock-container').addEventListener('click', (e) => {
       // 더블 클릭 이벤트와 충돌 방지
@@ -125,6 +176,52 @@
         }, 200);
       }
     });
+
+    // 더블 클릭으로 전체화면 토글 (모바일 지원 포함)
+    document.getElementById('clock-container').addEventListener('dblclick', () => {
+      toggleFullscreen();
+    });
+
+    // 전체화면 토글 함수 (모바일 지원)
+    function toggleFullscreen() {
+      try {
+        if (!document.fullscreenElement && 
+            !document.webkitFullscreenElement && 
+            !document.mozFullScreenElement && 
+            !document.msFullscreenElement) {
+          // 전체화면 진입
+          if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+          } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+          } else if (document.documentElement.mozRequestFullScreen) {
+            document.documentElement.mozRequestFullScreen();
+          } else if (document.documentElement.msRequestFullscreen) {
+            document.documentElement.msRequestFullscreen();
+          }
+        } else {
+          // 전체화면 종료
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          }
+        }
+      } catch (error) {
+        console.log('전체화면 전환 실패:', error);
+        // 모바일에서 전체화면이 지원되지 않는 경우 대안 제공
+        if (window.innerHeight === screen.height) {
+          // 이미 전체화면 상태라면 종료 시도
+          window.scrollTo(0, 0);
+        }
+      }
+    }
+
+
 
     // 폰트 크기 자동 조정 (반응형)
     function resizeFont() {
