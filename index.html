@@ -225,6 +225,125 @@
     const CITY_NAME = 'Namyangju'; // 남양주시
     const COUNTRY_CODE = 'KR'; // 한국
 
+    // 날씨 설명을 자연스러운 한국어로 변환하는 함수
+    function getNaturalKoreanWeather(description, weatherId) {
+      // 날씨 ID별 매핑 (더 정확함)
+      const weatherIdMap = {
+        // 천둥번개 (200-299)
+        200: '천둥번개와 가벼운 비',
+        201: '천둥번개와 비',
+        202: '천둥번개와 폭우',
+        210: '가벼운 천둥번개',
+        211: '천둥번개',
+        212: '강한 천둥번개',
+        221: '매우 강한 천둥번개',
+        230: '천둥번개와 가벼운 이슬비',
+        231: '천둥번개와 이슬비',
+        232: '천둥번개와 강한 이슬비',
+        
+        // 이슬비 (300-399)
+        300: '가벼운 이슬비',
+        301: '이슬비',
+        302: '강한 이슬비',
+        310: '가벼운 이슬비',
+        311: '이슬비',
+        312: '강한 이슬비',
+        313: '소나기와 이슬비',
+        314: '강한 소나기와 이슬비',
+        321: '소나기',
+        
+        // 비 (500-599)
+        500: '가벼운 비',
+        501: '비',
+        502: '강한 비',
+        503: '매우 강한 비',
+        504: '극심한 비',
+        511: '진눈깨비',
+        520: '가벼운 소나기',
+        521: '소나기',
+        522: '강한 소나기',
+        531: '매우 강한 소나기',
+        
+        // 눈 (600-699)
+        600: '가벼운 눈',
+        601: '눈',
+        602: '강한 눈',
+        611: '진눈깨비',
+        612: '가벼운 진눈깨비',
+        613: '진눈깨비',
+        615: '가벼운 비와 눈',
+        616: '비와 눈',
+        620: '가벼운 소나기와 눈',
+        621: '소나기와 눈',
+        622: '강한 소나기와 눈',
+        
+        // 대기 현상 (700-799)
+        701: '연무',
+        711: '연기',
+        721: '연무',
+        731: '모래/먼지 소용돌이',
+        741: '안개',
+        751: '모래',
+        761: '먼지',
+        762: '화산재',
+        771: '돌풍',
+        781: '토네이도',
+        
+        // 맑음 (800)
+        800: '맑음',
+        
+        // 구름 (801-899)
+        801: '구름 조금',
+        802: '구름 많음',
+        803: '구름 많음',
+        804: '흐림'
+      };
+      
+      // 설명별 매핑 (백업용)
+      const weatherMap = {
+        '맑음': '맑음',
+        'clear sky': '맑음',
+        '흐림': '흐림',
+        'overcast clouds': '흐림',
+        'scattered clouds': '구름 조금',
+        'broken clouds': '구름 많음',
+        'few clouds': '구름 조금',
+        '비': '비',
+        'light rain': '가벼운 비',
+        'moderate rain': '비',
+        'heavy rain': '폭우',
+        'shower rain': '소나기',
+        'rain': '비',
+        '눈': '눈',
+        'light snow': '가벼운 눈',
+        'moderate snow': '눈',
+        'heavy snow': '폭설',
+        'snow': '눈',
+        'sleet': '진눈깨비',
+        '안개': '안개',
+        'mist': '안개',
+        'fog': '짙은 안개',
+        'haze': '연무',
+        'thunderstorm': '천둥번개',
+        'thunderstorm with light rain': '천둥번개와 가벼운 비',
+        'thunderstorm with rain': '천둥번개와 비',
+        'thunderstorm with heavy rain': '천둥번개와 폭우',
+        'smoke': '연기',
+        'dust': '먼지',
+        'sand': '모래',
+        'ash': '재',
+        'squall': '돌풍',
+        'tornado': '토네이도'
+      };
+      
+      // ID 매핑을 우선 사용, 없으면 설명 매핑 사용
+      if (weatherId && weatherIdMap[weatherId]) {
+        return weatherIdMap[weatherId];
+      }
+      
+      return weatherMap[description] || description;
+    }
+
     async function getWeather() {
       try {
 
@@ -240,17 +359,27 @@
         
         const temp = Math.round(data.main.temp);
         const humidity = data.main.humidity;
-        const description = data.weather[0].description;
+        const originalDescription = data.weather[0].description;
+        const weatherId = data.weather[0].id;
         const iconCode = data.weather[0].icon;
+        
+        // API 응답 확인용 로그
+        console.log('Weather API Response:', data);
+        console.log('Weather ID:', weatherId);
+        console.log('Original description:', originalDescription);
+        
+        // 자연스러운 한국어로 변환
+        const naturalDescription = getNaturalKoreanWeather(originalDescription, weatherId);
+        console.log('Natural Korean description:', naturalDescription);
         
         // 날씨 아이콘 URL
         const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
         
         // 날씨 정보 HTML 생성
         const weatherHTML = `
-          <img src="${iconUrl}" alt="${description}" class="weather-icon">
+          <img src="${iconUrl}" alt="${naturalDescription}" class="weather-icon">
           <span>${temp}°C</span>
-          <span>${description}</span>
+          <span>${naturalDescription}</span>
           <span>습도: ${humidity}%</span>
         `;
         
