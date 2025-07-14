@@ -151,6 +151,9 @@
     <div id="time"></div>
     <div id="weather"></div>
   </div>
+  <video id="keep-awake-video" loop playsinline style="position:absolute;left:0;top:0;width:0;height:0;opacity:0;">
+    <source src="data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAAzRtb292AAAAbG12aGQAAAAAzaNacc2jWnEAAQAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAGGlvZHMAAAAAEwAACAEAAAEAAAAAAAAAAAABAAAAAAEAAAAAAAEAAAAYc3RiawAAABxzdHNkAAAAAAAAAAEAAABhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEAaaGF2YwEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAACgAAAAYc3R0cwAAAAAAAAABAAAAAQAAAAEAAAAUc3RzcwAAAAAAAAABAAAAAQAAABRzdHNjAAAAAAAAAAEAAAABAAAAAQAAAAEAAAAYc3RzegAAAAAAAAAAAAAAAQAAAAEAAAAUc3RjbwAAAAAAAAABAAAAMAAAABh1ZHRhAAAAFG1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNTguNzYuMTAw" type="video/mp4">
+  </video>
   <script>
     function updateClock() {
       const now = new Date();
@@ -533,6 +536,29 @@
     setInterval(() => {
       getWeather();
     }, 600000);
+
+    // 절전 모드 방지용 비디오 재생
+    function playKeepAwakeVideo() {
+      const video = document.getElementById('keep-awake-video');
+      if (video) {
+        // play()는 프로미스를 반환하며, 사용자의 상호작용 없이 호출하면 실패할 수 있음
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.then(_ => {
+            // 자동 재생 성공
+            console.log('절전 모드 방지 비디오 재생 시작.');
+          }).catch(error => {
+            // 자동 재생 실패. 사용자 상호작용이 필요할 수 있음.
+            console.log('절전 모드 방지 비디오 자동 재생 실패. 사용자 클릭 시 재시도합니다.', error);
+            // 사용자가 화면을 한 번 클릭하면 비디오를 재생하도록 이벤트 리스너 추가
+            document.body.addEventListener('click', () => video.play(), { once: true });
+          });
+        }
+      }
+    }
+    
+    // 페이지 로드 시 비디오 재생 시도
+    playKeepAwakeVideo();
   </script>
 </body>
 </html>
