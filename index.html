@@ -34,7 +34,7 @@
       cursor: pointer;
     }
     #date {
-      font-size: 3rem;
+      font-size: 15vh;
       font-weight: 400;
       letter-spacing: 0.1em;
       margin-bottom: 2vh;
@@ -42,105 +42,50 @@
       text-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
     #time {
-      font-size: 8rem;
+      font-size: 35vh;
       font-weight: 700;
       letter-spacing: 0.05em;
       text-shadow: 0 4px 24px rgba(0,0,0,0.3);
     }
-    #weather {
-      font-size: 3rem;
-      font-weight: 400;
-      letter-spacing: 0.1em;
-      margin-top: 3vh;
-      opacity: 0.85;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-    }
-    .weather-item {
-      margin-right: 1.5rem;
-    }
-    .weather-item:last-child {
-      margin-right: 0;
-    }
     @media (max-width: 600px) {
       #date {
-        font-size: 2rem;
+        font-size: 12vh;
       }
       #time {
-        font-size: 4rem;
-      }
-      #weather {
-        font-size: 1.5rem;
-        flex-direction: column;
-        margin-top: 2vh;
-      }
-      .weather-item {
-        margin-right: 0;
-        margin-bottom: 0.8rem;
-      }
-      .weather-item:last-child {
-        margin-bottom: 0;
+        font-size: 30vh;
       }
     }
     
     /* 태블릿 환경 최적화 (갤럭시탭 등) */
     @media (min-width: 601px) and (max-width: 1024px) {
       #date {
-        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-size: 14vh;
         margin-bottom: 3vh;
       }
       #time {
-        font-size: clamp(6rem, 22vw, 12rem);
-      }
-      #weather {
-        font-size: clamp(2rem, 5vw, 3rem);
-        margin-top: 4vh;
-        gap: 2rem;
-      }
-      .weather-icon {
-        width: clamp(4rem, 8vw, 5rem);
-        height: clamp(4rem, 8vw, 5rem);
+        font-size: 32vh;
       }
     }
     
     /* 큰 태블릿 환경 (갤럭시탭 S9 등) */
     @media (min-width: 1025px) and (max-width: 1366px) {
       #date {
-        font-size: clamp(3rem, 6vw, 4.5rem);
+        font-size: 16vh;
         margin-bottom: 4vh;
       }
       #time {
-        font-size: clamp(8rem, 20vw, 14rem);
-      }
-      #weather {
-        font-size: clamp(2.5rem, 4vw, 3.5rem);
-        margin-top: 5vh;
-        gap: 2.5rem;
-      }
-      .weather-icon {
-        width: clamp(5rem, 6vw, 6rem);
-        height: clamp(5rem, 6vw, 6rem);
+        font-size: 36vh;
       }
     }
     
     /* PC 환경 최적화 (1367px 이상) */
     @media (min-width: 1367px) {
       #date {
-        font-size: clamp(2rem, 4vw, 3.5rem);
+        font-size: 15vh;
         margin-bottom: 2vh;
       }
       #time {
-        font-size: clamp(4rem, 12vw, 10rem);
-      }
-      #weather {
-        font-size: clamp(1.5rem, 3vw, 2.5rem);
-        margin-top: 3vh;
-        gap: 1.5rem;
-      }
-      .weather-icon {
-        width: clamp(3rem, 4vw, 4rem);
-        height: clamp(3rem, 4vw, 4rem);
+        font-size: 35vh;
       }
     }
   </style>
@@ -149,33 +94,128 @@
   <div id="clock-container">
     <div id="date"></div>
     <div id="time"></div>
-    <div id="weather"></div>
   </div>
   <video id="keep-awake-video" loop playsinline style="position:absolute;left:0;top:0;width:0;height:0;opacity:0;">
     <source src="data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAAzRtb292AAAAbG12aGQAAAAAzaNacc2jWnEAAQAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAGGlvZHMAAAAAEwAACAEAAAEAAAAAAAAAAAABAAAAAAEAAAAAAAEAAAAYc3RiawAAABxzdHNkAAAAAAAAAAEAAABhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEAaaGF2YwEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAACgAAAAYc3R0cwAAAAAAAAABAAAAAQAAAAEAAAAUc3RzcwAAAAAAAAABAAAAAQAAABRzdHNjAAAAAAAAAAEAAAABAAAAAQAAAAEAAAAYc3RzegAAAAAAAAAAAAAAAQAAAAEAAAAUc3RjbwAAAAAAAAABAAAAMAAAABh1ZHRhAAAAFG1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNTguNzYuMTAw" type="video/mp4">
   </video>
   <script>
-    function updateClock() {
-      const now = new Date();
-      const dateEl = document.getElementById('date');
-      const timeEl = document.getElementById('time');
-      const dateStr = now.toLocaleDateString('ko-KR', {
-        year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-      });
-      const timeStr = now.toLocaleTimeString('ko-KR', {
-        hour: '2-digit', minute: '2-digit', hour12: false
-      });
-      dateEl.textContent = dateStr;
-      timeEl.textContent = timeStr;
+    // 메모리 누수 방지를 위한 정리 함수들
+    var clockInterval = null;
+    var clickTimeout = null;
+    var touchStartTime = 0;
+    var isDoubleTouch = false;
+    var currentImageIndex = 0;
+    var shuffledImageFiles = [];
+    
+    // 페이지 언로드 시 정리 함수
+    function cleanup() {
+      if (clockInterval) {
+        clearInterval(clockInterval);
+        clockInterval = null;
+      }
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }
     }
-    setInterval(updateClock, 1000);
+    
+    // 페이지 언로드 이벤트 등록 (Android 5 호환)
+    if (window.addEventListener) {
+      window.addEventListener('beforeunload', cleanup, false);
+      window.addEventListener('unload', cleanup, false);
+    } else if (window.attachEvent) {
+      window.attachEvent('onbeforeunload', cleanup);
+      window.attachEvent('onunload', cleanup);
+    }
+
+    function updateClock() {
+      try {
+        var now = new Date();
+        var dateEl = document.getElementById('date');
+        var timeEl = document.getElementById('time');
+        
+        if (!dateEl || !timeEl) return; // 요소가 없으면 종료
+        
+        // Android 5 호환: toLocaleDateString 지원 확인
+        var dateStr, timeStr;
+        if (now.toLocaleDateString && now.toLocaleTimeString) {
+          try {
+            dateStr = now.toLocaleDateString('ko-KR', {
+              year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+            });
+            timeStr = now.toLocaleTimeString('ko-KR', {
+              hour: '2-digit', minute: '2-digit', hour12: false
+            });
+          } catch (e) {
+            // 옵션이 지원되지 않는 경우 기본 형식 사용
+            dateStr = now.toLocaleDateString('ko-KR');
+            timeStr = now.toLocaleTimeString('ko-KR');
+          }
+        } else {
+          // 매우 구형 브라우저 대응
+          var year = now.getFullYear();
+          var month = now.getMonth() + 1;
+          var date = now.getDate();
+          var hours = now.getHours();
+          var minutes = now.getMinutes();
+          
+          dateStr = year + '년 ' + month + '월 ' + date + '일';
+          timeStr = (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes;
+        }
+        
+        dateEl.textContent = dateStr;
+        timeEl.textContent = timeStr;
+      } catch (error) {
+        console.log('시계 업데이트 오류:', error);
+      }
+    }
+    
+    clockInterval = setInterval(updateClock, 1000);
     updateClock();
 
-    // 클릭으로 다음 이미지로 변경
-    document.getElementById('clock-container').addEventListener('click', (e) => {
+    // 터치/클릭으로 다음 이미지로 변경 (변수는 상단에서 이미 선언됨)
+    
+    function handleImageChange() {
+      if (!isDoubleTouch) {
+        changeBackgroundImage();
+      }
+      isDoubleTouch = false;
+    }
+    
+    // 터치 이벤트 처리 (모바일)
+    document.getElementById('clock-container').addEventListener('touchstart', function(e) {
+      touchStartTime = Date.now();
+    }, false);
+    
+    document.getElementById('clock-container').addEventListener('touchend', function(e) {
+      e.preventDefault(); // 클릭 이벤트 중복 방지
+      var touchDuration = Date.now() - touchStartTime;
+      
+      // 짧은 터치만 이미지 변경 (더블탭 방지)
+      if (touchDuration < 500) {
+        if (clickTimeout) {
+          clearTimeout(clickTimeout);
+          isDoubleTouch = true; // 더블탭 감지
+          toggleFullscreen();
+        } else {
+          clickTimeout = setTimeout(function() {
+            handleImageChange();
+            clickTimeout = null;
+          }, 300);
+        }
+      }
+    }, false);
+    
+    // 클릭 이벤트 처리 (PC)
+    document.getElementById('clock-container').addEventListener('click', function(e) {
+      // 터치 기기에서는 클릭 이벤트 무시
+      if ('ontouchstart' in window) {
+        return;
+      }
+      
       // 더블 클릭 이벤트와 충돌 방지
       if (e.detail === 1) {
-        setTimeout(() => {
+        setTimeout(function() {
           if (e.detail === 1) {
             changeBackgroundImage();
           }
@@ -184,7 +224,7 @@
     });
 
     // 더블 클릭으로 전체화면 토글 (모바일 지원 포함)
-    document.getElementById('clock-container').addEventListener('dblclick', () => {
+    document.getElementById('clock-container').addEventListener('dblclick', function() {
       toggleFullscreen();
     });
 
@@ -234,11 +274,15 @@
       // clamp 사용으로 CSS에서 이미 반응형 처리됨
       // 필요시 추가 조정 가능
     }
-    window.addEventListener('resize', resizeFont);
+    if (window.addEventListener) {
+      window.addEventListener('resize', resizeFont, false);
+    } else if (window.attachEvent) {
+      window.attachEvent('onresize', resizeFont);
+    }
     resizeFont();
 
-    // 로컬 이미지 배경 변경 기능
-    const imageFiles = [
+    // 로컬 이미지 배경 변경 기능 (변수는 상단에서 이미 선언됨)
+    var imageFiles = [
       '0aeb0a18e5164f02ab8.jpg',
       '1341d5f0a7591.jpg',
       '14780ee505d728.jpg',
@@ -286,9 +330,6 @@
       'e6c6226acc93a.jpeg'
     ];
 
-    let currentImageIndex = 0;
-    let shuffledImageFiles = [];
-
     // 이미지 배열을 섞는 함수 (Fisher-Yates 알고리즘)
     function shuffleArray(array) {
       var shuffled = array.slice(); // 배열 복사
@@ -302,257 +343,71 @@
     }
 
     function changeBackgroundImage() {
-      const imageFile = shuffledImageFiles[currentImageIndex];
-      const imagePath = `images/${imageFile}`;
-      
-      document.body.style.backgroundImage = `linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.3) 100%), url('${imagePath}')`;
-      document.body.style.backgroundSize = 'cover';
-      document.body.style.backgroundPosition = 'center';
-      document.body.style.backgroundRepeat = 'no-repeat';
-      
-      console.log(`배경 이미지 변경: ${imageFile}`);
-      
-      // 다음 이미지 인덱스로 이동
-      currentImageIndex = (currentImageIndex + 1) % shuffledImageFiles.length;
+      try {
+        if (!shuffledImageFiles || shuffledImageFiles.length === 0) {
+          console.log('이미지 파일 목록이 없습니다.');
+          return;
+        }
+        
+        var imageFile = shuffledImageFiles[currentImageIndex];
+        var imagePath = 'images/' + imageFile;
+        
+        // Android 5 호환: 템플릿 리터럴 대신 문자열 연결 사용
+        document.body.style.backgroundImage = 'linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.3) 100%), url(\'' + imagePath + '\')';
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundRepeat = 'no-repeat';
+        
+        console.log('배경 이미지 변경: ' + imageFile);
+        
+        // 다음 이미지 인덱스로 이동 (메모리 누수 방지를 위한 안전한 증가)
+        currentImageIndex = (currentImageIndex + 1) % shuffledImageFiles.length;
+      } catch (error) {
+        console.log('배경 이미지 변경 중 오류:', error);
+      }
     }
 
-    // 매시각 정각에 배경 이미지 변경
-    function scheduleNextHourChange() {
-      const now = new Date();
-      const nextHour = new Date(now);
-      nextHour.setHours(now.getHours() + 1, 0, 0, 0); // 다음 정각
-      
-      const timeUntilNextHour = nextHour.getTime() - now.getTime();
-      
-      setTimeout(() => {
-        changeBackgroundImage();
-        scheduleNextHourChange(); // 다음 정각 예약
-      }, timeUntilNextHour);
-    }
 
     // 페이지 로드 시 이미지 배열을 섞기
-    shuffledImageFiles = shuffleArray(imageFiles);
-    console.log('섞인 이미지 순서:', shuffledImageFiles);
-
-    // 초기 배경 이미지 설정
-    changeBackgroundImage();
-
-    // 매시각 정각 변경 스케줄링 시작
-    scheduleNextHourChange();
-
-    // 날씨 정보 기능 (OpenWeatherMap API 사용)
-    const WEATHER_API_KEY = 'dd1ebbf6e977551f04620b5b88a33e8d'; // OpenWeatherMap API 키를 여기에 입력하세요
-    const CITY_NAME = 'Namyangju'; // 남양주시
-    const COUNTRY_CODE = 'KR'; // 한국
-
-    // 날씨 설명을 자연스러운 한국어로 변환하는 함수
-    function getNaturalKoreanWeather(description, weatherId) {
-      // 날씨 ID별 매핑 (더 정확함)
-      const weatherIdMap = {
-        // 천둥번개 (200-299)
-        200: '천둥번개와 가벼운 비',
-        201: '천둥번개와 비',
-        202: '천둥번개와 폭우',
-        210: '가벼운 천둥번개',
-        211: '천둥번개',
-        212: '강한 천둥번개',
-        221: '매우 강한 천둥번개',
-        230: '천둥번개와 가벼운 이슬비',
-        231: '천둥번개와 이슬비',
-        232: '천둥번개와 강한 이슬비',
-        
-        // 이슬비 (300-399)
-        300: '가벼운 이슬비',
-        301: '이슬비',
-        302: '강한 이슬비',
-        310: '가벼운 이슬비',
-        311: '이슬비',
-        312: '강한 이슬비',
-        313: '소나기와 이슬비',
-        314: '강한 소나기와 이슬비',
-        321: '소나기',
-        
-        // 비 (500-599)
-        500: '가벼운 비',
-        501: '비',
-        502: '강한 비',
-        503: '매우 강한 비',
-        504: '극심한 비',
-        511: '진눈깨비',
-        520: '가벼운 소나기',
-        521: '소나기',
-        522: '강한 소나기',
-        531: '매우 강한 소나기',
-        
-        // 눈 (600-699)
-        600: '가벼운 눈',
-        601: '눈',
-        602: '강한 눈',
-        611: '진눈깨비',
-        612: '가벼운 진눈깨비',
-        613: '진눈깨비',
-        615: '가벼운 비와 눈',
-        616: '비와 눈',
-        620: '가벼운 소나기와 눈',
-        621: '소나기와 눈',
-        622: '강한 소나기와 눈',
-        
-        // 대기 현상 (700-799)
-        701: '연무',
-        711: '연기',
-        721: '연무',
-        731: '모래/먼지 소용돌이',
-        741: '안개',
-        751: '모래',
-        761: '먼지',
-        762: '화산재',
-        771: '돌풍',
-        781: '토네이도',
-        
-        // 맑음 (800)
-        800: '맑음',
-        
-        // 구름 (801-899)
-        801: '구름 조금',
-        802: '구름 많음',
-        803: '구름 많음',
-        804: '흐림'
-      };
+    try {
+      shuffledImageFiles = shuffleArray(imageFiles);
+      console.log('섞인 이미지 순서:', shuffledImageFiles);
       
-      // 설명별 매핑 (백업용)
-      const weatherMap = {
-        '맑음': '맑음',
-        'clear sky': '맑음',
-        '흐림': '흐림',
-        'overcast clouds': '흐림',
-        'scattered clouds': '구름 조금',
-        'broken clouds': '구름 많음',
-        'few clouds': '구름 조금',
-        '비': '비',
-        'light rain': '가벼운 비',
-        'moderate rain': '비',
-        'heavy rain': '폭우',
-        'shower rain': '소나기',
-        'rain': '비',
-        '눈': '눈',
-        'light snow': '가벼운 눈',
-        'moderate snow': '눈',
-        'heavy snow': '폭설',
-        'snow': '눈',
-        'sleet': '진눈깨비',
-        '안개': '안개',
-        'mist': '안개',
-        'fog': '짙은 안개',
-        'haze': '연무',
-        'thunderstorm': '천둥번개',
-        'thunderstorm with light rain': '천둥번개와 가벼운 비',
-        'thunderstorm with rain': '천둥번개와 비',
-        'thunderstorm with heavy rain': '천둥번개와 폭우',
-        'smoke': '연기',
-        'dust': '먼지',
-        'sand': '모래',
-        'ash': '재',
-        'squall': '돌풍',
-        'tornado': '토네이도'
-      };
-      
-      // ID 매핑을 우선 사용, 없으면 설명 매핑 사용
-      if (weatherId && weatherIdMap[weatherId]) {
-        return weatherIdMap[weatherId];
-      }
-      
-      return weatherMap[description] || description;
+      // 초기 배경 이미지 설정
+      changeBackgroundImage();
+    } catch (error) {
+      console.log('이미지 초기화 중 오류:', error);
     }
 
-    function getWeather() {
-      // 구형 브라우저 호환성을 위한 XMLHttpRequest 사용
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'https://api.openweathermap.org/data/2.5/weather?lat=37.6569856&lon=127.287296&appid=' + WEATHER_API_KEY + '&units=metric&lang=kr', true);
-      
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-            try {
-              var data = JSON.parse(xhr.responseText);
-              
-              var temp = Math.round(data.main.temp);
-              var humidity = data.main.humidity;
-              var originalDescription = data.weather[0].description;
-              var weatherId = data.weather[0].id;
-              var iconCode = data.weather[0].icon;
-              
-              // API 응답 확인용 로그
-              console.log('Weather API Response:', data);
-              console.log('Weather ID:', weatherId);
-              console.log('Original description:', originalDescription);
-              
-              // 자연스러운 한국어로 변환
-              var naturalDescription = getNaturalKoreanWeather(originalDescription, weatherId);
-              console.log('Natural Korean description:', naturalDescription);
-              
-              // 바람 정보 추가
-              var windSpeed = Math.round(data.wind.speed);
-              var feelsLike = Math.round(data.main.feels_like);
-              
-              // 날씨 정보 HTML 생성 (날씨 텍스트, 온도, 습도, 바람, 체감온도 순)
-              var weatherHTML = 
-                '<span class="weather-item">' + naturalDescription + '</span>' +
-                '<span class="weather-item">' + temp + '°C</span>' +
-                '<span class="weather-item">' + humidity + '%</span>' +
-                '<span class="weather-item">' + windSpeed + 'm/s</span>' +
-                '<span class="weather-item">체감: ' + feelsLike + '°C</span>';
-              
-              document.getElementById('weather').innerHTML = weatherHTML;
-              
-                         } catch (error) {
-               console.log('날씨 데이터 파싱 실패:', error);
-               document.getElementById('weather').innerHTML = 
-                 '<span class="weather-item">남양주시</span>' +
-                 '<span class="weather-item">날씨 정보를 불러올 수 없습니다</span>';
-             }
-           } else {
-             console.log('날씨 API 요청 실패:', xhr.status);
-             document.getElementById('weather').innerHTML = 
-               '<span class="weather-item">남양주시</span>' +
-               '<span class="weather-item">날씨 정보를 불러올 수 없습니다</span>';
-           }
-         }
-       };
-       
-       xhr.onerror = function() {
-         console.log('날씨 정보 가져오기 실패');
-         document.getElementById('weather').innerHTML = 
-           '<span class="weather-item">남양주시</span>' +
-           '<span class="weather-item">날씨 정보를 불러올 수 없습니다</span>';
-       };
-      
-      xhr.send();
-    }
 
-    // 초기 날씨 정보 로드
-    getWeather();
-
-    // 10분마다 날씨 정보 업데이트 (600000ms = 10분)
-    setInterval(() => {
-      getWeather();
-    }, 600000);
-
-    // 절전 모드 방지용 비디오 재생
+    // 절전 모드 방지용 비디오 재생 (Android 5 호환)
     function playKeepAwakeVideo() {
-      const video = document.getElementById('keep-awake-video');
+      var video = document.getElementById('keep-awake-video');
       if (video) {
-        // play()는 프로미스를 반환하며, 사용자의 상호작용 없이 호출하면 실패할 수 있음
-        const playPromise = video.play();
-        if (playPromise !== undefined) {
-          playPromise.then(_ => {
-            // 자동 재생 성공
+        try {
+          // Android 5 호환: 프로미스 지원 확인
+          var playPromise = video.play();
+          if (playPromise && typeof playPromise.then === 'function') {
+            // 프로미스를 지원하는 경우
+            playPromise.then(function() {
+              console.log('절전 모드 방지 비디오 재생 시작.');
+            }).catch(function(error) {
+              console.log('절전 모드 방지 비디오 자동 재생 실패:', error);
+              // Android 5 호환: 한 번만 실행되는 이벤트 리스너 수동 구현
+              var playOnce = function() {
+                video.play();
+                document.body.removeEventListener('click', playOnce);
+                document.body.removeEventListener('touchend', playOnce);
+              };
+              document.body.addEventListener('click', playOnce);
+              document.body.addEventListener('touchend', playOnce);
+            });
+          } else {
+            // 프로미스를 지원하지 않는 구형 브라우저
             console.log('절전 모드 방지 비디오 재생 시작.');
-          }).catch(error => {
-            // 자동 재생 실패. 사용자 상호작용이 필요할 수 있음.
-            console.log('절전 모드 방지 비디오 자동 재생 실패. 사용자 클릭 시 재시도합니다.', error);
-            // 사용자가 화면을 한 번 클릭하면 비디오를 재생하도록 이벤트 리스너 추가
-            document.body.addEventListener('click', () => video.play(), { once: true });
-          });
+          }
+        } catch (error) {
+          console.log('비디오 재생 중 오류:', error);
         }
       }
     }
