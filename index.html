@@ -50,6 +50,25 @@
       letter-spacing: 0.05em;
       text-shadow: 0 4px 24px rgba(0,0,0,0.3);
     }
+    #wake-lock-status {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 400;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      z-index: 1000;
+      white-space: nowrap;
+    }
+    #wake-lock-status.show {
+      opacity: 0.9;
+    }
     @media (max-width: 600px) {
       #date {
         font-size: 10vh;
@@ -115,6 +134,7 @@
   <div id="clock-container">
     <div id="date"></div>
     <div id="time"></div>
+    <div id="wake-lock-status">화면 잠금 방지 활성화</div>
   </div>
   <video id="keep-awake-video" loop playsinline style="position:absolute;left:0;top:0;width:0;height:0;opacity:0;">
     <source src="data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAAzRtb292AAAAbG12aGQAAAAAzaNacc2jWnEAAQAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAGGlvZHMAAAAAEwAACAEAAAEAAAAAAAAAAAABAAAAAAEAAAAAAAEAAAAYc3RiawAAABxzdHNkAAAAAAAAAAEAAABhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEAaaGF2YwEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAACgAAAAYc3R0cwAAAAAAAAABAAAAAQAAAAEAAAAUc3RzcwAAAAAAAAABAAAAAQAAABRzdHNjAAAAAAAAAAEAAAABAAAAAQAAAAEAAAAYc3RzegAAAAAAAAAAAAAAAQAAAAEAAAAUc3RjbwAAAAAAAAABAAAAMAAAABh1ZHRhAAAAFG1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNTguNzYuMTAw" type="video/mp4">
@@ -393,6 +413,20 @@
     }
 
 
+    // 화면 잠금 방지 상태 표시 함수
+    function showWakeLockStatus(message, isSuccess) {
+      var statusEl = document.getElementById('wake-lock-status');
+      if (statusEl) {
+        statusEl.textContent = message;
+        statusEl.className = 'show';
+        
+        // 5초 후 자동으로 숨김
+        setTimeout(function() {
+          statusEl.className = '';
+        }, 5000);
+      }
+    }
+
     // 절전 모드 방지용 비디오 재생 (Android 5 호환)
     function playKeepAwakeVideo() {
       var video = document.getElementById('keep-awake-video');
@@ -404,11 +438,22 @@
             // 프로미스를 지원하는 경우
             playPromise.then(function() {
               console.log('절전 모드 방지 비디오 재생 시작.');
+              showWakeLockStatus('🔒 화면 잠금 방지 활성화', true);
             }).catch(function(error) {
               console.log('절전 모드 방지 비디오 자동 재생 실패:', error);
+              showWakeLockStatus('⚠️ 화면 잠금 방지 실패 - 터치하여 활성화', false);
               // Android 5 호환: 한 번만 실행되는 이벤트 리스너 수동 구현
               var playOnce = function() {
-                video.play();
+                var retryPromise = video.play();
+                if (retryPromise && typeof retryPromise.then === 'function') {
+                  retryPromise.then(function() {
+                    showWakeLockStatus('🔒 화면 잠금 방지 활성화', true);
+                  }).catch(function() {
+                    showWakeLockStatus('❌ 화면 잠금 방지 불가능', false);
+                  });
+                } else {
+                  showWakeLockStatus('🔒 화면 잠금 방지 활성화', true);
+                }
                 document.body.removeEventListener('click', playOnce);
                 document.body.removeEventListener('touchend', playOnce);
               };
@@ -418,9 +463,11 @@
           } else {
             // 프로미스를 지원하지 않는 구형 브라우저
             console.log('절전 모드 방지 비디오 재생 시작.');
+            showWakeLockStatus('🔒 화면 잠금 방지 활성화', true);
           }
         } catch (error) {
           console.log('비디오 재생 중 오류:', error);
+          showWakeLockStatus('❌ 화면 잠금 방지 오류', false);
         }
       }
     }
