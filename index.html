@@ -52,7 +52,7 @@
     }
     @media (max-width: 600px) {
       #date {
-        font-size: 8vh;
+        font-size: 10vh;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -65,7 +65,7 @@
     /* 태블릿 환경 최적화 (갤럭시탭 등) */
     @media (min-width: 601px) and (max-width: 1024px) {
       #date {
-        font-size: 10vh;
+        font-size: 12vh;
         margin-bottom: 3vh;
         white-space: nowrap;
         overflow: hidden;
@@ -81,7 +81,7 @@
     /* 큰 태블릿 환경 (갤럭시탭 S9 등) */
     @media (min-width: 1025px) and (max-width: 1366px) {
       #date {
-        font-size: 12vh;
+        font-size: 14vh;
         margin-bottom: 4vh;
         white-space: nowrap;
         overflow: hidden;
@@ -157,32 +157,24 @@
         
         if (!dateEl || !timeEl) return; // 요소가 없으면 종료
         
-        // Android 5 호환: toLocaleDateString 지원 확인
+        // Android 5 호환: 짧은 날짜 형식으로 표시
         var dateStr, timeStr;
-        if (now.toLocaleDateString && now.toLocaleTimeString) {
-          try {
-            dateStr = now.toLocaleDateString('ko-KR', {
-              year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-            });
-            timeStr = now.toLocaleTimeString('ko-KR', {
-              hour: '2-digit', minute: '2-digit', hour12: false
-            });
-          } catch (e) {
-            // 옵션이 지원되지 않는 경우 기본 형식 사용
-            dateStr = now.toLocaleDateString('ko-KR');
-            timeStr = now.toLocaleTimeString('ko-KR');
-          }
-        } else {
-          // 매우 구형 브라우저 대응
-          var year = now.getFullYear();
-          var month = now.getMonth() + 1;
-          var date = now.getDate();
-          var hours = now.getHours();
-          var minutes = now.getMinutes();
-          
-          dateStr = year + '년 ' + month + '월 ' + date + '일';
-          timeStr = (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes;
-        }
+        var year = now.getFullYear();
+        var month = now.getMonth() + 1;
+        var date = now.getDate();
+        var hours = now.getHours();
+        var minutes = now.getMinutes();
+        
+        // 요일 배열
+        var weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+        var weekday = weekdays[now.getDay()];
+        
+        // 짧은 형식: "2024.09.06 금"
+        dateStr = year + '.' + 
+                 (month < 10 ? '0' : '') + month + '.' + 
+                 (date < 10 ? '0' : '') + date + ' ' + weekday;
+        
+        timeStr = (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes;
         
         dateEl.textContent = dateStr;
         timeEl.textContent = timeStr;
